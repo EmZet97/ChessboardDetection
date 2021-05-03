@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 import random
 
 import Helpers.ImageProcessing as helpers
+import Helpers.ResourceLoader as resources
 
 
 def empty(i):
@@ -24,35 +25,33 @@ def drawContours(img, contours):
 
     return img
 
-cap = cv.VideoCapture(0)
-image = cv.imread('Resources/board2.jpg')
+
 cv.namedWindow("Trackbars")
 cv.createTrackbar("contrast1", "Trackbars", 0, 100, empty)
 cv.createTrackbar("contrast2", "Trackbars", 0, 100, empty)
 cv.createTrackbar("edges1", "Trackbars", 0, 500, empty)
 cv.createTrackbar("edges2", "Trackbars", 0, 500, empty)
 
-while True:
+for image in resources.load_camera_frame(0): #load source image: load_image('Resources/board1.jpg')
     # Read trackbars values
     c1 = cv.getTrackbarPos("contrast1", "Trackbars")
     c2 = cv.getTrackbarPos("contrast2", "Trackbars")
     e1 = cv.getTrackbarPos("edges1", "Trackbars")
     e2 = cv.getTrackbarPos("edges2", "Trackbars")
 
-    # Capture frame-by-frame
-    #ret, frame = cap.read()
-    frame = image
-    grayImg = helpers.convert_to_grayscale(frame)
+    # Create images variances
+    grayImg = helpers.convert_to_grayscale(image)
     contrasted = helpers.increase_contrast(grayImg, -5 + c1 / 10, c2)
     blurImg = helpers.blur(contrasted)
     edgesImg = helpers.detect_edges(contrasted, e1, e2)
 
+    # Count contours
     contours = helpers.get_contours(edgesImg)
-    contoursImg = frame.copy()
+    contoursImg = image.copy()
     contoursImg = drawContours(contoursImg, contours)
 
     # Display the resulting frame windows
-    cv.imshow('frame', frame)
+    cv.imshow('frame', image)
     cv.imshow('grayImg', grayImg)
     cv.imshow('contrasted', contrasted)
     cv.imshow('edges', edgesImg)
@@ -63,5 +62,5 @@ while True:
         break
 
 # When everything done, release the capture
-cap.release()
+#cap.release()
 cv.destroyAllWindows()
